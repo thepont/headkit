@@ -7,21 +7,28 @@ gi.require_version('WebKit', '3.0')
 from gi.repository import WebKit
 import threading;
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import Terminal256Formatter
+
+lexer = get_lexer_by_name("javascript", stripall=True)
+formatter = Terminal256Formatter(linenos=True, cssclass="source")
+
 GObject.threads_init()
 
 
 win = Gtk.Window()
 def handle_keys(widget,event):
     print event
-    modifiers=Gtk.accelerator_get_default_mod_mask() 
+    modifiers=Gtk.accelerator_get_default_mod_mask()
     for mod in dir(Gdk.ModifierType): #just printing what the modifier is
-        if (event.state&modifiers) == getattr(Gdk.ModifierType,mod): print mod
+        if (event.state&modifiers) == getattr(Gdk.ModifierType,mod): print(mod)
     print Gdk.keyval_name(event.keyval)
 
 def set_title(webobj, frame, title):
     uri = web.get_uri();
     win.set_title(title + " -  " + uri)
-   
+
 def log_message(webobj, message, line, source_id):
     print message
 
@@ -32,9 +39,11 @@ class MyThread(threading.Thread):
         self.quit = False
 
     def run_script(self, script):
+        result = highlight(script, lexer, formatter)
+        print(result)
         self.web.execute_script(script);
         return False
-     
+
     def run(self):
         counter = 0
         while not self.quit:
